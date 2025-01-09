@@ -14,7 +14,8 @@ class Board:
     """
     
     card_offset = 5
-    draw_pile_loc = Vector2(22 + card_offset, 16 + card_offset)
+    draw_pile_loc = Vector2((22 + card_offset) * 2, (16 + card_offset) * 2)
+    dump_loc = Vector2(draw_pile_loc.x + 150 + 24, draw_pile_loc.y)
 
     stack_loc: list[Vector2] = [Vector2(((283 + 5) * 2 + (i * (75 + 12)) * 2), (21 + 5) * 2) for i in range(4)]
 
@@ -79,6 +80,18 @@ class Board:
             tab.get_top_sprite().flip_up()    
             count += 1
 
+        rem = len(self.deck)
+        remaining_cards: list[Card] = []
+
+        self.draw_pile = DrawPile(pos=self.draw_pile_loc, 
+                                  back_img=self.card_back)
+        self.dump = Dump(self.dump_loc)
+
+        for _ in range(rem):
+            c = self.get_card_from_deck()
+            if c:
+                self.draw_pile.add(c)
+
     def update(self):
         left_clicked = InputManager.MOUSE_LEFT_DOWN()
         left_lifted = InputManager.MOUSE_LEFT_UP()
@@ -87,11 +100,14 @@ class Board:
             if len(self.selected_cards) == 1:
                 for stack in self.stacks:
                     if stack.drop(self.selected_cards[0]):
+                        self.selected_cards = []
                         break
 
-            for tab in self.tableaux:
-                if tab.drop_stack(self.selected_cards):
-                    break
+            if self.selected_cards:
+                for tab in self.tableaux:
+                    if tab.drop_stack(self.selected_cards):
+                        self.selected_cards = []
+                        break
 
             self.selected_cards = []
 
@@ -101,12 +117,19 @@ class Board:
         for stack in self.stacks:
             stack.update(self.selected_cards)
 
+        self.dump.update(self.selected_cards)
+        self.draw_pile.update(self.dump)
+
         if left_clicked:
             for card in self.selected_cards:
                 print(str(card.rank) + " " + str(card.rank.value))
 
 
     def draw(self, screen):
+
+        self.draw_pile.draw(screen)
+        self.dump.draw(screen)
+
         for tab in self.tableaux:
             tab.draw(screen)
 
@@ -118,29 +141,98 @@ class Board:
 
         
 class DrawPile(sprite.LayeredUpdates):
-    def __init__(self, *sprites, pos, w, h):
+    def __init__(self, *sprites, pos: Vector2, back_img):
         super().__init__(*sprites)
 
-        self.pos: pygame.Vector2
-        self.rect = Rect(pos.x, pos.y, w, h)
+        self.back = back_img
+        self.pos = pos
+        self.rect = Rect(pos.x, pos.y, 130, 180)
 
-    def update(self):
-        if InputManager.MOUSE_LEFT_DOWN \
+    def update(self, dump):
+        if InputManager.MOUSE_LEFT_DOWN() \
             and self.rect.collidepoint(InputManager.cursor_pos):
 
             if self.sprites():
-                num = min(3, len(self.sprites()))
-                self.draw_cards(num)
-
+                self.draw_one(dump)
             else:
-                self.reshuffle()
+                self.reshuffle(dump)
+
+    def add(self, *sprites, **kwargs):
+        super().add(*sprites, **kwargs)
+
+        for sprite in sprites:
+            if type(sprite) == Card:
+                sprite.rect.x = self.pos.x
+                sprite.rect.y = self.pos.y
+
+
+    def draw_one(self, dump):
+        card = self.get_top_sprite()
+        card.flip_up()
+
+        self.remove(card)
+        dump.add(card)
 
     def draw_cards(self, num):
         pass 
 
-    def reshuffle(self):
-        pass
+    def reshuffle(self, dump):
+        cards = dump.sprites()
+        for card in cards:
+            card.flip_back(self.back)
 
+        random.shuffle(cards)
+
+        dump.empty()
+        self.add(cards)
+
+class Dump(sprite.LayeredUpdates):
+    def __init__(self, pos):
+        super().__init__()
+        self.pos = pos
+        self.rect = Rect(pos.x, pos.y, 130, 180)
+    
+    def add(self, *sprites, **kwargs):
+        super().add(*sprites, **kwargs)
+
+        for sprite in sprites:
+            if type(sprite) == Card:
+                sprite.rect.x = self.pos.x
+                sprite.rect.y = self.pos.y
+
+    def update(self, selected_cards):
+        super().update()
+
+        cursor = InputManager.cursor_pos
+        rel_cursor = InputManager.cursor_rel_pos
+
+        left_clicked = InputManager.MOUSE_LEFT_DOWN()
+        left_lifted = InputManager.MOUSE_LEFT_UP()
+
+        sprites = self.sprites()
+
+        x_offset = 30
+        for i, card in enumerate(reversed(sprites[-1:-4:-1])):
+            if not card.selected:
+                card.rect.x = self.pos.x
+                card.rect.x += x_offset * i
+        
+        if not sprites:
+            return
+
+        sprite = sprites[-1]
+
+        if left_lifted and sprites[-1].selected:
+            sprites[-1].selected = False
+            sprites[-1].rect.x = self.pos.x
+            sprites[-1].rect.y = self.pos.y
+        elif sprites[-1].selected:
+            sprites[-1].rect.x += rel_cursor[0]
+            sprites[-1].rect.y += rel_cursor[1]
+
+        if left_clicked and sprite.rect.collidepoint(cursor):
+            selected_cards.append(sprites[-1])
+            sprites[-1].selected = True
 
 class Stack(sprite.LayeredUpdates):
     def __init__(self, pos):
@@ -221,6 +313,15 @@ class Stack(sprite.LayeredUpdates):
 
         
 class Tableau(sprite.LayeredUpdates):
+    """
+    tableaux are the 7 lower card piles
+    maintain the following invariants:
+        1. each face-up card must be 1 rank lower 
+            than the face-up card below it
+        2. each face-up card must be the opposite 
+            color (red/blue) of the face-up card below it
+    """
+
     def __init__(self, pos: Vector2):
         super().__init__()
 
@@ -316,9 +417,4 @@ class Tableau(sprite.LayeredUpdates):
 
                     self.add(selected_cards)
                     return True
-
-        
-
-
-
 
