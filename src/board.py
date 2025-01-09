@@ -1,8 +1,8 @@
 import random
-import pygame
-from pygame import Rect, Vector2, cursors, image, sprite, transform
+from pygame import Rect, Vector2, sprite, transform
 from card import Card, CardAssets, Rank
 from input import InputManager
+from ui import Button, UIAssets
 
 class Board:
     """
@@ -16,6 +16,8 @@ class Board:
     card_offset = 5
     draw_pile_loc = Vector2((22 + card_offset) * 2, (16 + card_offset) * 2)
     dump_loc = Vector2(draw_pile_loc.x + 150 + 24, draw_pile_loc.y)
+
+    reset_button_loc = Vector2(dump_loc.x + 200, dump_loc.y)
 
     stack_loc: list[Vector2] = [Vector2(((283 + 5) * 2 + (i * (75 + 12)) * 2), (21 + 5) * 2) for i in range(4)]
 
@@ -40,6 +42,16 @@ class Board:
         self.stacks = [Stack(pos) for pos in self.stack_loc]
 
         self.selected_cards: list[Card] = []
+        
+        ui_assets = UIAssets()
+
+        self.ui_elts = sprite.Group()
+        self.ui_elts.add(
+            Button(
+                transform.scale_by(ui_assets.reset_button, 2), 
+                self.reset_button_loc, 
+                self.restart)
+        )
 
         random.shuffle(self.deck)
 
@@ -50,6 +62,9 @@ class Board:
 
         for stack in self.stacks:
             stack.empty()
+
+        self.draw_pile.empty()
+        self.dump.empty()
 
         self.selected_cards = []
 
@@ -81,7 +96,6 @@ class Board:
             count += 1
 
         rem = len(self.deck)
-        remaining_cards: list[Card] = []
 
         self.draw_pile = DrawPile(pos=self.draw_pile_loc, 
                                   back_img=self.card_back)
@@ -111,6 +125,8 @@ class Board:
 
             self.selected_cards = []
 
+        self.ui_elts.update()
+
         for tab in self.tableaux:
             tab.update(self.selected_cards)
 
@@ -129,6 +145,8 @@ class Board:
 
         self.draw_pile.draw(screen)
         self.dump.draw(screen)
+
+        self.ui_elts.draw(screen)
 
         for tab in self.tableaux:
             tab.draw(screen)
@@ -270,6 +288,7 @@ class Stack(sprite.LayeredUpdates):
                     print("wrong rank and or suit for populated stack")
                     print(card.rank)
                     print(card.suit)
+                    return False
             else: 
                 if card.rank == Rank.ACE:
                     g = card.groups()[0]
@@ -281,6 +300,7 @@ class Stack(sprite.LayeredUpdates):
                     return True
                 else:
                     print("expected ace")
+                    return False
 
         return False
 

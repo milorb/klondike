@@ -1,6 +1,5 @@
 import pygame
 from board import Board
-import board
 from input import InputManager
 
 
