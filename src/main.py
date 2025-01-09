@@ -1,5 +1,6 @@
 import pygame
 from board import Board
+import board
 from input import InputManager
 
 
@@ -20,6 +21,9 @@ class Game:
         pygame.display.set_caption("klondike")
         pygame.display.set_icon(icon)
 
+        bg_img = pygame.image.load("assets/board.png").convert_alpha()
+        self.bg = pygame.transform.scale_by(bg_img, 2)
+
         self.clock = pygame.time.Clock()
         self.bg_color = (30, 100, 90, 255)
 
@@ -30,6 +34,7 @@ class Game:
     def run(self):
 
         self.running = True
+        self.board.setup()
 
         while self.running:
             InputManager.frame_start()
@@ -46,22 +51,23 @@ class Game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    self.board.restart()
 
-            else:
-                InputManager.process_input(event)
+            InputManager.process_input(event)
+
+        InputManager.cursor_pos = pygame.mouse.get_pos()
+        InputManager.cursor_rel_pos = pygame.mouse.get_rel()
 
     def update_(self):
-
-        pass
+        self.board.update()
 
     def render_(self):
 
-        self.screen.fill(self.bg_color)
-
-        for i, rank in enumerate(self.board.ranks):
-            for j, suit in enumerate(self.board.suits):
-                c = self.board.card_images[rank][suit]
-                self.screen.blit(c, (i * c.get_width(), j * c.get_height()))
+        self.screen.fill("white")
+        self.screen.blit(self.bg, (0,0))
+        self.board.draw(self.screen)
 
         pygame.display.flip()
 

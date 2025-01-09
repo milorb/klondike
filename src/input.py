@@ -1,4 +1,6 @@
+from typing import Tuple
 import pygame
+from pygame import mouse
 from pygame.event import Event
 
 
@@ -10,6 +12,9 @@ class InputManager:
 
     @classmethod
     def init(cls):
+        cls.cursor_pos: Tuple[int, int] = (0, 0)
+        cls.cursor_rel_pos: Tuple[int, int] = (0, 0)
+
         cls.mouse = [False, False, False]
         # per frame
         cls.mouse_down = [False, False, False]
@@ -22,6 +27,7 @@ class InputManager:
             
     @classmethod
     def process_input(cls, event: Event):
+
         if event.type == pygame.MOUSEBUTTONDOWN:
             idx = event.button - 1
             cls.mouse_down[idx] = not cls.mouse[idx]

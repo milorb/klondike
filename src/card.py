@@ -5,19 +5,62 @@ from pygame import image
 from pygame import Surface
 from pygame import Rect
 
+from enum import Enum
+
 import pygame
 
+class Rank(Enum):
+    ACE =   1
+    TWO =   2
+    THREE = 3
+    FOUR =  4
+    FIVE =  5
+    SIX =   6
+    SEVEN = 7
+    EIGHT = 8
+    NINE =  9
+    TEN =   10
+    JACK =  11
+    QUEEN = 12
+    KING =  13
+
+str_to_rank = {'A': Rank.ACE, 
+               2: Rank.TWO, 
+               3: Rank.THREE, 
+               4: Rank.FOUR, 
+               5: Rank.FIVE, 
+               6: Rank.SIX, 
+               7: Rank.SEVEN, 
+               8: Rank.EIGHT, 
+               9: Rank.NINE, 
+               10: Rank.TEN, 
+               'J': Rank.JACK, 
+               'Q': Rank.QUEEN, 
+               'K': Rank.KING}
 
 class Card(sprite.Sprite):
-    def __init__(self, img, rank, suit):
+    def __init__(self, img, back_img, rank, suit):
         super().__init__()
 
-        self.image = img
+        self.image = back_img
+
+        self.front = img
         self.rect = img.get_rect()
 
         self.color = "blue" if suit == "spade" or suit == "club" else "red"
-        self.rank = rank
+        self.rank: Rank = str_to_rank[rank]
         self.suit = suit
+
+        self.selected = False
+        self.faceup = False
+        
+    def flip_up(self):
+        self.image = self.front
+        self.faceup = True
+
+    def flip_back(self, back_img):
+        self.image = back_img
+        self.faceup = False
  
 
 class CardAssets:
@@ -59,11 +102,10 @@ class CardAssets:
         }
 
     
-    def get_card_images(self, ranks, suits, scale) -> dict[str, dict[str, Surface]]:
+    def get_cards(self, ranks, suits, scale) -> dict[str, dict[str, Card]]:
         cards = {
             rank: {
-                suit: transform.scale_by(self.composite_card(
-                    (rank, suit)), scale)
+                suit: self.composite_card((rank, suit), scale)
                 for suit in suits
             } 
             for rank in ranks
@@ -220,7 +262,7 @@ class CardAssets:
             card_surface.blit(rot_suit_surface, 
                               (blit_x, blit_y))
 
-    def composite_card(self, c: tuple):
+    def composite_card(self, c: tuple, scale) -> Card:
         rank = c[0]
         suit = c[1]
 
@@ -302,6 +344,8 @@ class CardAssets:
                   (v_line_r - (s_w // 2), 
                    card_h - sym_h - v_small_suit_offset - 2))
 
-        return card
+        card = transform.scale_by(card, scale)
+        back = transform.scale_by(self.card_back, scale)
+        return Card(card, back, rank, suit)
 
        
