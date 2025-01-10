@@ -17,9 +17,9 @@ class Board:
     draw_pile_loc = Vector2((22 + card_offset) * 2, (16 + card_offset) * 2)
     dump_loc = Vector2(draw_pile_loc.x + 150 + 24, draw_pile_loc.y)
 
-    reset_button_loc = Vector2(dump_loc.x + 200, dump_loc.y)
+    reset_button_loc = Vector2(dump_loc.x + 212, dump_loc.y)
 
-    stack_loc: list[Vector2] = [Vector2(((283 + 5) * 2 + (i * (75 + 12)) * 2), (21 + 5) * 2) for i in range(4)]
+    stack_loc: list[Vector2] = [Vector2(((283 + 5) * 2 + (i * (75 + 12)) * 2), (16 + 5) * 2) for i in range(4)]
 
     tableau_loc: list[Vector2] = [Vector2((22 + 5 + (i * (75 + 12))) * 2, (130 + 5) * 2) for i in range(7)]
 
@@ -49,6 +49,7 @@ class Board:
         self.ui_elts.add(
             Button(
                 transform.scale_by(ui_assets.reset_button, 2), 
+                transform.scale_by(ui_assets.reset_button_down, 2),
                 self.reset_button_loc, 
                 self.restart)
         )
@@ -229,7 +230,7 @@ class Dump(sprite.LayeredUpdates):
 
         sprites = self.sprites()
 
-        x_offset = 30
+        x_offset = 24
         for i, card in enumerate(reversed(sprites[-1:-4:-1])):
             if not card.selected:
                 card.rect.x = self.pos.x

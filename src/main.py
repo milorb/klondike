@@ -20,7 +20,7 @@ class Game:
         pygame.display.set_caption("klondike")
         pygame.display.set_icon(icon)
 
-        bg_img = pygame.image.load("assets/board.png").convert_alpha()
+        bg_img = pygame.image.load("assets/klondike_bg.png").convert_alpha()
         self.bg = pygame.transform.scale_by(bg_img, 2)
 
         self.clock = pygame.time.Clock()
