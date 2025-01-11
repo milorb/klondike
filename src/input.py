@@ -1,6 +1,5 @@
 from typing import Tuple
 import pygame
-from pygame import mouse
 from pygame.event import Event
 
 
@@ -22,6 +21,9 @@ class InputManager:
 
     @classmethod
     def frame_start(cls):
+        cls.cursor_pos = pygame.mouse.get_pos()
+        cls.cursor_rel_pos = pygame.mouse.get_rel()
+
         cls.mouse_down = [False, False, False]
         cls.mouse_up = [False, False, False]
             

@@ -64,26 +64,28 @@ class Card(sprite.Sprite):
  
 
 class CardAssets:
-    def __init__(self):
+
+    @classmethod
+    def load(cls):
                 
         suits = ["heart", "spade", "diamond", "club"]
 
-        self.letters = self.load_letters()
-        self.numbers = self.load_nums()
+        cls.letters = cls.load_letters()
+        cls.numbers = cls.load_nums()
 
-        self.card_front = image.load(
+        cls.card_front = image.load(
             "assets/card_front.png").convert_alpha()
 
-        self.card_back = image.load(
+        cls.card_back = image.load(
             "assets/card_back.png").convert_alpha()
 
-        self.big_suits = {
+        cls.big_suits = {
             suit: image.load(
                 "assets/big_" + suit + ".png").convert_alpha() 
             for suit in suits
         }
 
-        self.small_suits = {
+        cls.small_suits = {
             suit: image.load(
                 "assets/small_" + suit + ".png").convert_alpha() 
             for suit in suits
@@ -92,7 +94,7 @@ class CardAssets:
         colors = ["red", "blue"]
         faces = ['J', 'Q', 'K']
 
-        self.faces = {
+        cls.faces = {
             color: {
                 face: image.load(
                     "assets/" + color + "_" + face + ".png").convert_alpha() 
@@ -102,10 +104,11 @@ class CardAssets:
         }
 
     
-    def get_cards(self, ranks, suits, scale) -> dict[str, dict[str, Card]]:
+    @classmethod
+    def get_cards(cls, ranks, suits, scale) -> dict[str, dict[str, Card]]:
         cards = {
             rank: {
-                suit: self.composite_card((rank, suit), scale)
+                suit: cls.composite_card((rank, suit), scale)
                 for suit in suits
             } 
             for rank in ranks
@@ -114,7 +117,8 @@ class CardAssets:
         return cards
 
 
-    def load_letters(self) -> dict[str, Surface]:
+    @classmethod
+    def load_letters(cls) -> dict[str, Surface]:
         l = image.load("assets/letters.png").convert_alpha()
         
         symbol_w = 5
@@ -130,7 +134,8 @@ class CardAssets:
 
         return letters
 
-    def load_nums(self) -> dict[int, Surface]:
+    @classmethod
+    def load_nums(cls) -> dict[int, Surface]:
         l = image.load("assets/numbers.png").convert_alpha()
         
         symbol_w = 5
@@ -149,7 +154,8 @@ class CardAssets:
         return numbers
 
 
-    def blit_suits_num(self, rank, suit, suit_surface: Surface, card_surface: Surface):
+    @classmethod
+    def blit_suits_num(cls, rank, suit, suit_surface: Surface, card_surface: Surface):
         card_w = card_surface.get_width()
         card_h = card_surface.get_height()
         
@@ -262,18 +268,19 @@ class CardAssets:
             card_surface.blit(rot_suit_surface, 
                               (blit_x, blit_y))
 
-    def composite_card(self, c: tuple, scale) -> Card:
+    @classmethod
+    def composite_card(cls, c: tuple, scale) -> Card:
         rank = c[0]
         suit = c[1]
 
-        suit_b: Surface = self.big_suits[suit].copy()
+        suit_b: Surface = cls.big_suits[suit].copy()
         b_w = suit_b.get_width()
         b_h = suit_b.get_height()
 
-        suit_s: Surface = self.small_suits[suit].copy()
+        suit_s: Surface = cls.small_suits[suit].copy()
         s_w = suit_s.get_width()
 
-        card = self.card_front.copy()
+        card = cls.card_front.copy()
         card_w = card.get_width()
         card_h = card.get_height()
 
@@ -281,23 +288,23 @@ class CardAssets:
 
         # get the symbol and set its color to the suit
         if type(rank) is int:
-            symbol: Surface = self.numbers[rank].copy()
+            symbol: Surface = cls.numbers[rank].copy()
 
             # blit the suits onto the card surface
-            self.blit_suits_num(rank, suit, suit_b, card)
+            cls.blit_suits_num(rank, suit, suit_b, card)
             
         else:
-            symbol: Surface = self.letters[rank].copy()
+            symbol: Surface = cls.letters[rank].copy()
             if rank == 'A':
-                self.blit_suits_num(1, suit, suit_b, card)
+                cls.blit_suits_num(1, suit, suit_b, card)
             else:
                 x = card_w // 2
                 y = card_h // 2
 
                 if suit == "heart" or suit == "diamond":
-                    surf = self.faces["red"][rank]
+                    surf = cls.faces["red"][rank]
                 else:
-                    surf = self.faces["blue"][rank]
+                    surf = cls.faces["blue"][rank]
 
                 x = x - surf.get_width() // 2
                 y = y - surf.get_height() // 2
@@ -345,7 +352,7 @@ class CardAssets:
                    card_h - sym_h - v_small_suit_offset - 2))
 
         card = transform.scale_by(card, scale)
-        back = transform.scale_by(self.card_back, scale)
+        back = transform.scale_by(cls.card_back, scale)
         return Card(card, back, rank, suit)
 
        

@@ -1,6 +1,7 @@
-from pygame import Color, sprite, image
 import pygame
+from pygame import Color, sprite, image, transform
 from input import InputManager
+from scene import Scene
 
 class Button(sprite.Sprite):
     """
@@ -41,26 +42,62 @@ class Button(sprite.Sprite):
                     self.on_hover()
         else:
             if self.hovered and not self.down:
-                print("unhovered")
                 self.image = self.up_image
                 self.image.fill(self.hover_color, special_flags=pygame.BLEND_SUB)
                 self.hovered = False
 
     def on_hover(self):
         if not self.hovered:
-            print("hovered")
             self.image.fill(self.hover_color, special_flags=pygame.BLEND_ADD)
             self.hovered = True
 
     def on_click(self):
-        self.func(*self.func_args)
         if not self.down:
             self.down = True
             self.image = self.down_image
+            
+        self.func(*self.func_args)
+
 
 class UIAssets():
-    def __init__(self):
 
-        self.reset_button = image.load("assets/button_reset.png").convert_alpha()
-        self.reset_button_down = image.load("assets/button_reset_down.png").convert_alpha()
+    @classmethod
+    def load(cls):
+        cls.reset_button = image.load("assets/button_reset.png").convert_alpha()
+        cls.reset_button_down = image.load("assets/button_reset_down.png").convert_alpha()
+
+        cls.settings_button = image.load("assets/button_settings.png").convert_alpha()
+        cls.settings_button_down = image.load("assets/button_settings_down.png").convert_alpha()
+
+        cls.settings_bg = image.load("assets/settings.png").convert_alpha()
+
+class SettingsMenu(Scene):
+    def __init__(self, game):
+        super().__init__(game)
+        self.menu = transform.scale_by(UIAssets.settings_bg, 2)
+        self.menu_rect = self.menu.get_rect()
+        
+    def on_exit(self, *args):
+        print("exiting settings")
+        self.game.settings_button.func_args = (self,)
+
+    def on_swap(self, *args):
+        self.prev_bg = self.game.prev_screen.copy()
+        self.prev_bg.fill(Color(15,15,8,20), special_flags=pygame.BLEND_SUB)
+
+        self.game.settings_button.func_args = (self.game.board,)
+
+    def draw(self):
+        x = self.prev_bg.get_width() / 2
+        y = self.prev_bg.get_height() / 2
+
+        x = x - (self.menu_rect.width / 2)
+        y = y - (self.menu_rect.height / 2)
+
+        self.prev_bg.blit(self.menu, (x, y))
+        self.game.screen.blit(self.prev_bg, (0,0))
+        
+
+
+
 

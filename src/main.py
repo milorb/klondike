@@ -1,6 +1,9 @@
 import pygame
+from card import CardAssets
+from scene import Scene
 from board import Board
 from input import InputManager
+from ui import Button, SettingsMenu, UIAssets
 
 
 class Game:
@@ -20,23 +23,36 @@ class Game:
         pygame.display.set_caption("klondike")
         pygame.display.set_icon(icon)
 
+        InputManager.init()
+
+        CardAssets.load()
+        UIAssets.load()
+
         bg_img = pygame.image.load("assets/klondike_bg.png").convert_alpha()
         self.bg = pygame.transform.scale_by(bg_img, 2)
 
         self.clock = pygame.time.Clock()
         self.bg_color = (30, 100, 90, 255)
 
-        self.board = Board()
+        self.board = Board(self)
+        self.settings_menu = SettingsMenu(self)
 
-        InputManager.init()
+        self.active_scene: Scene = self.board
 
+        self.settings_button = Button(
+            UIAssets.settings_button, 
+            UIAssets.settings_button_down, 
+            pygame.Vector2(w - 40, 10), 
+            self.swap_scene, 
+            self.settings_menu)
+
+        
     def run(self):
 
         self.running = True
         self.board.setup()
 
         while self.running:
-            InputManager.frame_start()
             
             self.input_()
             self.update_()
@@ -47,29 +63,36 @@ class Game:
 
     def input_(self):
 
+        InputManager.frame_start()
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_r:
-                    self.board.restart()
-
-            InputManager.process_input(event)
-
-        InputManager.cursor_pos = pygame.mouse.get_pos()
-        InputManager.cursor_rel_pos = pygame.mouse.get_rel()
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                self.settings_button.on_click()
+            else:
+                InputManager.process_input(event)
 
     def update_(self):
-        self.board.update()
+        
+        self.prev_screen = self.screen.copy()
+        self.active_scene.update()
+        self.settings_button.update()
 
     def render_(self):
 
         self.screen.fill("white")
         self.screen.blit(self.bg, (0,0))
-        self.board.draw(self.screen)
+
+        self.active_scene.draw()
+        self.screen.blit(self.settings_button.image, self.settings_button.rect)
 
         pygame.display.flip()
 
+    def swap_scene(self, new_scene):
+        self.active_scene.on_exit()
+        self.active_scene = new_scene
+        self.active_scene.on_swap()
 
 game = Game(1280, 720)
 game.run()

@@ -2,9 +2,10 @@ import random
 from pygame import Rect, Vector2, sprite, transform
 from card import Card, CardAssets, Rank
 from input import InputManager
+from scene import Scene
 from ui import Button, UIAssets
 
-class Board:
+class Board(Scene):
     """
     main gameplay scene layout:
     |[draw][dump]      [pile][pile][pile][pile]
@@ -24,7 +25,8 @@ class Board:
     tableau_loc: list[Vector2] = [Vector2((22 + 5 + (i * (75 + 12))) * 2, (130 + 5) * 2) for i in range(7)]
 
 
-    def __init__(self):
+    def __init__(self, game):
+        super().__init__(game)
 
         random.seed()
 
@@ -33,10 +35,8 @@ class Board:
 
         self.deck = [(rank, suit) for rank in self.ranks for suit in self.suits]
 
-        card_assets = CardAssets()
-
-        self.card_back = transform.scale_by(card_assets.card_back, 2)
-        self.cards = card_assets.get_cards(self.ranks, self.suits, scale=2)
+        self.card_back = transform.scale_by(CardAssets.card_back, 2)
+        self.cards = CardAssets.get_cards(self.ranks, self.suits, scale=2)
 
         self.tableaux = [Tableau(pos) for pos in self.tableau_loc]
         self.stacks = [Stack(pos) for pos in self.stack_loc]
@@ -137,12 +137,8 @@ class Board:
         self.dump.update(self.selected_cards)
         self.draw_pile.update(self.dump)
 
-        if left_clicked:
-            for card in self.selected_cards:
-                print(str(card.rank) + " " + str(card.rank.value))
-
-
-    def draw(self, screen):
+    def draw(self):
+        screen = self.game.screen
 
         self.draw_pile.draw(screen)
         self.dump.draw(screen)
@@ -271,7 +267,6 @@ class Stack(sprite.LayeredUpdates):
     def drop(self, card):
         cursor = InputManager.cursor_pos
         if self.rect.collidepoint(cursor):
-            print("attempt to add to stack")
             if self.sprites():
                 top = self.get_top_sprite()
                 rank_val = top.rank.value
@@ -286,9 +281,6 @@ class Stack(sprite.LayeredUpdates):
                     self.add(card)
                     return True
                 else:
-                    print("wrong rank and or suit for populated stack")
-                    print(card.rank)
-                    print(card.suit)
                     return False
             else: 
                 if card.rank == Rank.ACE:
@@ -300,7 +292,6 @@ class Stack(sprite.LayeredUpdates):
                     self.add(card)
                     return True
                 else:
-                    print("expected ace")
                     return False
 
         return False
@@ -382,7 +373,6 @@ class Tableau(sprite.LayeredUpdates):
         if left_clicked:
             for card in reversed(sprites):
                 if card.faceup and card.rect.collidepoint(cursor):
-                    print("card clicked")
                     clicked_idx = card_idx
                     break
                     
@@ -420,12 +410,8 @@ class Tableau(sprite.LayeredUpdates):
             collider = top_sprite.rect
             if collider.collidepoint(cursor):
                 if top_sprite.rank.value - 1 != bot_select.rank.value:
-                    print("rank must decrease by one")
-                    print("top: " + str(top_sprite.rank.value))
-                    print("bot: " + str(bot_select.rank.value))
                     return False
                 if top_sprite.color == bot_select.color:
-                    print("colors must alternate")
                     return False
                 else:
                     tab: Tableau = selected_cards[0].groups()[0]
