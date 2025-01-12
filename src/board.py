@@ -1,6 +1,7 @@
 import random
 from pygame import Rect, Vector2, sprite, transform
 from card import Card, CardAssets, Rank
+from debug import Debug
 from input import InputManager
 from scene import Scene
 from ui import Button, UIAssets
@@ -58,6 +59,8 @@ class Board(Scene):
 
 
     def restart(self):
+        Debug.Log("board restart() called")
+
         for tab in self.tableaux:
             tab.empty()
 
@@ -84,12 +87,15 @@ class Board(Scene):
             rank = rank_and_suit[0]
             suit = rank_and_suit[1]
 
+            Debug.Log(f"got {rank} of {suit}s")
+
             card = self.cards[rank][suit]
 
             return card
 
     def setup(self):
         count = 1
+        Debug.Log("dealing to tableaux...")
         for tab in self.tableaux:
             for _ in range(count):
                 tab.add(self.get_card_from_deck())
@@ -102,17 +108,18 @@ class Board(Scene):
                                   back_img=self.card_back)
         self.dump = Dump(self.dump_loc)
 
+        Debug.Log("placing cards into draw pile...")
         for _ in range(rem):
             c = self.get_card_from_deck()
             if c:
                 self.draw_pile.add(c)
 
     def update(self):
-        left_clicked = InputManager.MOUSE_LEFT_DOWN()
         left_lifted = InputManager.MOUSE_LEFT_UP()
 
         if left_lifted and self.selected_cards:
             if len(self.selected_cards) == 1:
+                Debug.Log(f"attempt to add {self.selected_cards[0].rank} of {self.selected_cards[0].suit}s to stack")
                 for stack in self.stacks:
                     if stack.drop(self.selected_cards[0]):
                         self.selected_cards = []

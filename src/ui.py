@@ -1,5 +1,6 @@
 import pygame
 from pygame import Color, sprite, image, transform
+from debug import Debug
 from input import InputManager
 from scene import Scene
 
@@ -83,10 +84,11 @@ class SettingsMenu(Scene):
         self.menu_rect = self.menu.get_rect()
         
     def on_exit(self, *args):
-        print("exiting settings")
+        Debug.Log("closed settings menu")
         self.game.settings_button.func_args = (self,)
 
     def on_swap(self, *args):
+        Debug.Log("opened settings menu")
         self.prev_bg = self.game.prev_screen.copy()
         self.prev_bg.fill(Color(15,15,8,20), special_flags=pygame.BLEND_SUB)
 

@@ -13,4 +13,4 @@ class Scene():
         pass
 
     def on_swap(self, *args):
-        print("scene swapped")
+        pass

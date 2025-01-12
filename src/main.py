@@ -4,7 +4,7 @@ from scene import Scene
 from board import Board
 from input import InputManager
 from ui import Button, SettingsMenu, UIAssets
-
+from debug import Debug
 
 class Game:
     """
@@ -91,6 +91,8 @@ class Game:
         pygame.display.flip()
 
     def swap_scene(self, new_scene):
+        Debug.Log(f"swapping scene: {self.active_scene} to {new_scene}")
+
         self.active_scene.on_exit()
         self.active_scene = new_scene
         self.active_scene.on_swap()
