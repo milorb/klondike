@@ -31,6 +31,8 @@ class Button(sprite.Sprite):
 
     def update(self):
         if InputManager.MOUSE_LEFT_UP() or not InputManager.MOUSE_LEFT():
+            if InputManager.MOUSE_LEFT_UP():
+                self.on_release()
             self.image = self.up_image
             self.down = False
 
@@ -56,7 +58,10 @@ class Button(sprite.Sprite):
             self.down = True
             self.image = self.down_image
             
-        self.func(*self.func_args)
+
+    def on_release(self):
+        if self.down and self.rect.collidepoint(InputManager.cursor_pos):
+            self.func(*self.func_args)
 
 
 class UIAssets():

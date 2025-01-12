@@ -26,7 +26,7 @@ class InputManager:
 
         cls.mouse_down = [False, False, False]
         cls.mouse_up = [False, False, False]
-            
+
     @classmethod
     def process_input(cls, event: Event):
 

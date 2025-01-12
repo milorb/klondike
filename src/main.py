@@ -75,7 +75,6 @@ class Game:
 
     def update_(self):
         
-        self.prev_screen = self.screen.copy()
         self.active_scene.update()
         self.settings_button.update()
 
@@ -86,6 +85,8 @@ class Game:
 
         self.active_scene.draw()
         self.screen.blit(self.settings_button.image, self.settings_button.rect)
+
+        self.prev_screen = self.screen.copy()
 
         pygame.display.flip()
 
