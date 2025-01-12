@@ -69,7 +69,7 @@ class Game:
             if event.type == pygame.QUIT:
                 self.running = False
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                self.settings_button.on_click()
+                self.settings_button.func(*self.settings_button.func_args)
             else:
                 InputManager.process_input(event)
 
