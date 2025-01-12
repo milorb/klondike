@@ -154,6 +154,11 @@ class Board(Scene):
         for card in self.selected_cards:
             screen.blit(card.image, card.rect)
 
+    def on_exit(self, *args):
+        if InputManager.MOUSE_LEFT():
+            for card in self.selected_cards:
+                card.selected = False
+
         
 class DrawPile(sprite.LayeredUpdates):
     def __init__(self, *sprites, pos: Vector2, back_img):
